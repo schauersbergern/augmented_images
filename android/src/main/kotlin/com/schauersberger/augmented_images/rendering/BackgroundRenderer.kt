@@ -21,7 +21,6 @@ class BackgroundRenderer {
     private var cameraTexCoordAttrib = 0
     private var cameraTextureUniform = 0
     var textureId = -1
-        private set
     private var suppressTimestampZeroRendering = true
     private var depthPositionAttrib = 0
     private var depthTexCoordAttrib = 0
@@ -136,7 +135,7 @@ class BackgroundRenderer {
      * @param debugShowDepthMap Toggles whether to show the live camera feed or latest depth image.
      */
     @JvmOverloads
-    fun draw(frame: Frame, debugShowDepthMap: Boolean =  /*debugShowDepthMap=*/false) {
+    fun draw(frame: Frame, debugShowDepthMap: Boolean = false) {
         // If display rotation changed (also includes view size change), we need to re-query the uv
         // coordinates for the screen rect, as they may have changed as well.
         if (frame.hasDisplayGeometryChanged()) {
@@ -179,9 +178,7 @@ class BackgroundRenderer {
         }
         val u = (imageWidth - croppedWidth) / imageWidth * 0.5f
         val v = (imageHeight - croppedHeight) / imageHeight * 0.5f
-        val texCoordTransformed: FloatArray
-        texCoordTransformed =
-            when (cameraToDisplayRotation) {
+        val texCoordTransformed: FloatArray = when (cameraToDisplayRotation) {
                 90 -> floatArrayOf(1 - u, 1 - v, 1 - u, v, u, 1 - v, u, v)
                 180 -> floatArrayOf(1 - u, v, u, v, 1 - u, 1 - v, u, 1 - v)
                 270 -> floatArrayOf(u, v, u, 1 - v, 1 - u, v, 1 - u, 1 - v)
@@ -192,7 +189,7 @@ class BackgroundRenderer {
         // Write image texture coordinates.
         quadTexCoords!!.position(0)
         quadTexCoords!!.put(texCoordTransformed)
-        draw( /*debugShowDepthMap=*/false)
+        draw( false)
     }
 
     /**
