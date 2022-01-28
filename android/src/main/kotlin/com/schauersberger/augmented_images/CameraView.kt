@@ -1,38 +1,33 @@
 package com.schauersberger.augmented_images
 
 import android.app.Activity
-import android.app.Application
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Color
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
-import android.os.Bundle
 import android.util.Log
 import android.util.Pair
 import android.view.View
-import android.widget.TextView
 import com.google.ar.core.*
 import com.google.ar.core.ArCoreApk.InstallStatus
 import com.google.ar.core.exceptions.*
 import com.schauersberger.augmented_images.callback.CameraViewLifecycle
 import com.schauersberger.augmented_images.callback.CameraViewLifecycleCallback
-import com.schauersberger.augmented_images.helpers.ArCoreInstallationHelper
-import com.schauersberger.augmented_images.helpers.CameraPermissionHelper
+import com.schauersberger.augmented_images.communication.MessageStreamHandler
+import com.schauersberger.augmented_images.helpers.*
 import io.flutter.plugin.platform.PlatformView
 import java.io.IOException
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
-import com.schauersberger.augmented_images.helpers.DisplayRotationHelper
-import com.schauersberger.augmented_images.helpers.TrackingStateHelper
 import com.schauersberger.augmented_images.rendering.AugmentedImageRenderer
 import com.schauersberger.augmented_images.rendering.BackgroundRenderer
 import io.flutter.plugin.common.BinaryMessenger
+import io.flutter.plugin.common.EventChannel
 import java.lang.Exception
 import java.util.HashMap
 
-class CameraView(private val activity: Activity, private val context: Context, messenger: BinaryMessenger, id: Int, creationParams: Map<String?, Any?>?) : CameraViewLifecycle, PlatformView, GLSurfaceView.Renderer {
+class CameraView(private val activity: Activity, private val context: Context, private val messenger: BinaryMessenger, id: Int, creationParams: Map<String?, Any?>?) : CameraViewLifecycle, PlatformView, GLSurfaceView.Renderer {
     private val surfaceView: GLSurfaceView = GLSurfaceView(context)
 
     private val backgroundRenderer = BackgroundRenderer()
@@ -45,6 +40,8 @@ class CameraView(private val activity: Activity, private val context: Context, m
 
     private val trackingStateHelper: TrackingStateHelper = TrackingStateHelper(activity)
     private var installRequested = false
+
+    private val messageStreamHandler = MessageStreamHandler()
 
     companion object {
         const val TAG = "CameraView"
@@ -74,7 +71,13 @@ class CameraView(private val activity: Activity, private val context: Context, m
         surfaceView.renderMode = GLSurfaceView.RENDERMODE_CONTINUOUSLY
         surfaceView.setWillNotDraw(false)
 
+        initStream()
         setupLifeCycle()
+    }
+
+    private fun initStream() {
+        val messageEventChannel = EventChannel(messenger, EVENT_CHANNEL_NAME)
+        messageEventChannel.setStreamHandler(messageStreamHandler)
     }
 
     private fun setupLifeCycle() {
@@ -225,6 +228,8 @@ class CameraView(private val activity: Activity, private val context: Context, m
                     // but not yet tracked.
                     val text = String.format("Detected Image %d", augmentedImage.index)
                     Log.i(TAG, text)
+
+                    messageStreamHandler.send(EVENT_CHANNEL_NAME, "image_detected", "{'image_index' : ${augmentedImage.index}}")
                 }
                 TrackingState.TRACKING -> {
                     // Have to switch to UI Thread to update View.

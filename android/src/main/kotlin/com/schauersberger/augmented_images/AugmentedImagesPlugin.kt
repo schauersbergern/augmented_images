@@ -1,7 +1,6 @@
 package com.schauersberger.augmented_images
 
 import androidx.annotation.NonNull
-import com.schauersberger.augmented_images.helpers.CameraPermissionHelper
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
