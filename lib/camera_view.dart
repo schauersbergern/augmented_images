@@ -20,7 +20,12 @@ class CameraViewState extends State<AugmentedCameraView> {
 
   @override
   Widget build(BuildContext context) {
-    return getCameraView();
+    return Stack(
+      children: [
+        getCameraView(),
+        const Image(image: AssetImage('assets/fit_to_scan.png', package: 'augmented_images'))
+      ],
+    );
   }
 
   Widget getCameraView() {
