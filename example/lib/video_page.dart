@@ -7,12 +7,12 @@ class VideoPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: const Text("Ready to pair!"),
+          title: const Text("Ein cooles Video"),
           centerTitle: false,
           backgroundColor: Colors.red,
         ),
         body: const Center(
-          child: Text("Hier steht was!"),
+          child: Text("So much Video, so much Wow!"),
         ),
       );
   }

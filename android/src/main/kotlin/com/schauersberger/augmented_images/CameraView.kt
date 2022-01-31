@@ -272,7 +272,7 @@ class CameraView(private val activity: Activity, private val context: Context, p
 
     private fun loadAugmentedImageBitmap(): Bitmap? {
         try {
-            activity.assets.open("alma.jpg").use { `is` -> return BitmapFactory.decodeStream(`is`) }
+            activity.assets.open("nasa.jpg").use { `is` -> return BitmapFactory.decodeStream(`is`) }
         } catch (e: IOException) {
             Log.e(
                 TAG,
