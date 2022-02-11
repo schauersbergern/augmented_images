@@ -8,15 +8,30 @@ class IosARView: NSObject, FlutterPlatformView, ARSCNViewDelegate, UIGestureReco
     //private var _view: UIView
     
     let sceneView: ARSCNView
+    
+    let params: Dictionary<String, Array<String>>
+    let registrar: FlutterPluginRegistrar
+    
+    /// A serial queue for thread safety when modifying the SceneKit node graph.
+    let updateQueue = DispatchQueue(label: Bundle.main.bundleIdentifier! +
+        ".serialSceneKitQueue")
+    
+    /// Convenience accessor for the session owned by ARSCNView.
+    var session: ARSession {
+        return sceneView.session
+    }
 
     init(
         frame: CGRect,
         viewIdentifier viewId: Int64,
         arguments args: Any?,
-        binaryMessenger messenger: FlutterBinaryMessenger?
+        registrar: FlutterPluginRegistrar
     ) {
         //_view = UIView()
+        self.registrar = registrar
         self.sceneView = ARSCNView(frame: frame)
+        self.params = args as! Dictionary<String, Array<String>>
+        
         super.init()
         // iOS views can be created here
         //createNativeView(view: _view)
@@ -36,15 +51,37 @@ class IosARView: NSObject, FlutterPlatformView, ARSCNViewDelegate, UIGestureReco
     /// - Tag: ARReferenceImage-Loading
     func resetTracking() {
         
-        guard let referenceImages = ARReferenceImage.referenceImages(inGroupNamed: "AR Resources", bundle: nil) else {
-            fatalError("Missing expected asset catalog resources.")
+        var imageSet: Set<ARReferenceImage> = []
+        
+        let fileUrls = params["triggerImagePaths"]
+        
+        for fileUrl in fileUrls ?? [""] {
+            let asset = registrar.lookupKey(forAsset: fileUrl)
+            guard let path = Bundle.main.path(forResource: asset, ofType: nil) else { return }
+            let imageUrl = URL(fileURLWithPath: path)
+            
+            guard let image = CIImage(contentsOf: imageUrl) else { return }
+            guard let ciImage = convertCIImageToCGImage(inputImage: image) else { return }
+            
+            let refimage = ARReferenceImage(ciImage, orientation: CGImagePropertyOrientation.up, physicalWidth: 0.2)
+            imageSet.insert(refimage)
         }
+        
+        
+        /*guard let referenceImages = ARReferenceImage.referenceImages(inGroupNamed: "AR Resources", bundle: nil) else {
+            fatalError("Missing expected asset catalog resources.")
+        }*/
+        
+        let referenceImages = imageSet
         
         let configuration = ARWorldTrackingConfiguration()
         configuration.detectionImages = referenceImages
         session.run(configuration, options: [.resetTracking, .removeExistingAnchors])
-
-        statusViewController.scheduleMessage("Look around to detect images", inSeconds: 7.5, messageType: .contentPlacement)
+    }
+    
+    func convertCIImageToCGImage(inputImage: CIImage) -> CGImage! {
+        let context = CIContext(options: nil)
+        return context.createCGImage(inputImage, from: inputImage.extent)
     }
 
     func createNativeView(view _view: UIView){

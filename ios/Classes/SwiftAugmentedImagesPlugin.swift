@@ -7,7 +7,7 @@ public class SwiftAugmentedImagesPlugin: NSObject, FlutterPlugin {
     let instance = SwiftAugmentedImagesPlugin()
     registrar.addMethodCallDelegate(instance, channel: channel)
 
-    let factory = FLNativeViewFactory(messenger: registrar.messenger())
+    let factory = FLNativeViewFactory(registrar: registrar)
     registrar.register(factory, withId: "com.schauersberger.augmentedimgs/cameraview")
   }
 

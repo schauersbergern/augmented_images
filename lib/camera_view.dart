@@ -3,10 +3,13 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
+import 'package:augmented_images/config.dart';
 import 'dart:io' show Platform;
 
 class AugmentedCameraView extends StatefulWidget {
-  const AugmentedCameraView({Key? key}) : super(key: key);
+  const AugmentedCameraView({Key? key, required this.triggerImagePaths}) : super(key: key);
+
+  final List<String> triggerImagePaths;
 
   @override
   State<StatefulWidget> createState() => CameraViewState();
@@ -17,10 +20,13 @@ class CameraViewState extends State<AugmentedCameraView> {
   // This is used in the platform side to register the view.
   static const String viewType = 'com.schauersberger.augmentedimgs/cameraview';
   // Pass parameters to the platform side.
-  static const Map<String, dynamic> creationParams = <String, dynamic>{};
+  var creationParams = <String, dynamic>{};
 
   @override
   Widget build(BuildContext context) {
+
+    creationParams[Config.triggerImagePaths] = widget.triggerImagePaths;
+
     return Stack(
       children: [
         getCameraView(),
@@ -57,11 +63,11 @@ class CameraViewState extends State<AugmentedCameraView> {
         },
       );
     } else if (Platform.isIOS) {
-      return const UiKitView(
+      return UiKitView(
         viewType: viewType,
         layoutDirection: TextDirection.ltr,
         creationParams: creationParams,
-        creationParamsCodec: StandardMessageCodec(),
+        creationParamsCodec: const StandardMessageCodec(),
       );
     } else {
       return const Text('This platform is not supported');

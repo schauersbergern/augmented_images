@@ -2,7 +2,6 @@ package com.schauersberger.augmented_images
 
 import android.app.Activity
 import android.content.Context
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
@@ -22,12 +21,12 @@ import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 import com.schauersberger.augmented_images.rendering.AugmentedImageRenderer
 import com.schauersberger.augmented_images.rendering.BackgroundRenderer
-import io.flutter.plugin.common.BinaryMessenger
+import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.EventChannel
 import java.lang.Exception
 import java.util.HashMap
 
-class CameraView(private val activity: Activity, private val context: Context, private val messenger: BinaryMessenger, id: Int, creationParams: Map<String?, Any?>?) : CameraViewLifecycle, PlatformView, GLSurfaceView.Renderer {
+class CameraView(private val activity: Activity, private val context: Context, private val binding: FlutterPlugin.FlutterPluginBinding, id: Int, creationParams: Map<String?, Any?>?) : CameraViewLifecycle, PlatformView, GLSurfaceView.Renderer {
     private val surfaceView: GLSurfaceView = GLSurfaceView(context)
 
     private val backgroundRenderer = BackgroundRenderer()
@@ -42,6 +41,7 @@ class CameraView(private val activity: Activity, private val context: Context, p
     private var installRequested = false
 
     private val messageStreamHandler = MessageStreamHandler()
+    private val triggerImages: List<String>? = creationParams?.get("triggerImagePaths") as List<String>?
 
     companion object {
         const val TAG = "CameraView"
@@ -76,7 +76,7 @@ class CameraView(private val activity: Activity, private val context: Context, p
     }
 
     private fun initStream() {
-        val messageEventChannel = EventChannel(messenger, EVENT_CHANNEL_NAME)
+        val messageEventChannel = EventChannel(binding.binaryMessenger, EVENT_CHANNEL_NAME)
         messageEventChannel.setStreamHandler(messageStreamHandler)
     }
 
@@ -257,30 +257,19 @@ class CameraView(private val activity: Activity, private val context: Context, p
             }
         }
     }
-    private fun setupAugmentedImageDatabase(config: Config): Boolean {
-        val augmentedImageBitmap = loadAugmentedImageBitmap() ?: return false
-        var augmentedImageDatabase = AugmentedImageDatabase(session)
-        augmentedImageDatabase.addImage("image_name", augmentedImageBitmap)
-        // If the physical size of the image is known, you can instead use:
-        //     augmentedImageDatabase.addImage("image_name", augmentedImageBitmap, widthInMeters);
-        // This will improve the initial detection speed. ARCore will still actively estimate the
-        // physical size of the image as it is viewed from multiple viewpoints.
+    private fun setupAugmentedImageDatabase(config: Config) {
 
-        config.augmentedImageDatabase = augmentedImageDatabase
-        return true
-    }
+        val augmentedImageDatabase = AugmentedImageDatabase(session)
+        triggerImages?.forEach {
 
-    private fun loadAugmentedImageBitmap(): Bitmap? {
-        try {
-            activity.assets.open("nasa.jpg").use { `is` -> return BitmapFactory.decodeStream(`is`) }
-        } catch (e: IOException) {
-            Log.e(
-                TAG,
-                "IO exception loading augmented image bitmap.",
-                e
-            )
+            val path = binding.flutterAssets.getAssetFilePathByName(it)
+            val stream = binding.applicationContext.assets.open(path)
+            val bitmap = BitmapFactory.decodeStream(stream)
+
+            //TODO: Performance: Third parameter image width for faster detection
+            augmentedImageDatabase.addImage(path, bitmap)
         }
-        return null
+        config.augmentedImageDatabase = augmentedImageDatabase
     }
 }
 

@@ -49,7 +49,7 @@ class AugmentedImagesPlugin: FlutterPlugin, MethodCallHandler, ActivityAware {
   override fun onAttachedToActivity(binding: ActivityPluginBinding) {
     this.flutterPluginBinding.platformViewRegistry.registerViewFactory(
       "com.schauersberger.augmentedimgs/cameraview",
-      CameraViewFactory(binding.activity, flutterPluginBinding.binaryMessenger)
+      CameraViewFactory(binding.activity, flutterPluginBinding)
     )
   }
 

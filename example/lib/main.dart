@@ -45,7 +45,7 @@ class _MyAppState extends State<MyApp> {
           title: const Text('Plugin example app'),
         ),
         body: const Center(
-          child: AugmentedCameraView(),
+          child: AugmentedCameraView( triggerImagePaths: ['images/alma.jpg', 'images/default.jpg', 'images/nasa.jpg'] ),
         ),
       );
   }
