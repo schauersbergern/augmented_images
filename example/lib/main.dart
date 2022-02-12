@@ -17,7 +17,8 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
 
-  AugmentedImages pusher = AugmentedImages();
+  //Todo: Use this only in Camera view, just provide callback when image is recognised
+  NativeMessenger messenger = NativeMessenger();
 
   @override
   void initState() {
@@ -25,7 +26,7 @@ class _MyAppState extends State<MyApp> {
 
     SchedulerBinding.instance?.addPostFrameCallback((_) {
       print("SchedulerBinding");
-      pusher.onMessage.listen((pusher) {
+      messenger.onMessage.listen((pusher) {
         if (pusher.eventName == 'image_detected') {
           Navigator.of(context).push(MaterialPageRoute<VideoPage>(
             builder: (BuildContext context) {

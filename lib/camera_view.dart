@@ -30,7 +30,12 @@ class CameraViewState extends State<AugmentedCameraView> {
     return Stack(
       children: [
         getCameraView(),
-        const Image(image: AssetImage('assets/fit_to_scan.png', package: 'augmented_images'))
+          const Image(
+            width: double.infinity,
+            height: double.infinity,
+            fit: BoxFit.fitWidth,
+            image: AssetImage('assets/fit_to_scan.png', package: 'augmented_images'),
+          ),
       ],
     );
   }
